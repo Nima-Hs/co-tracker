@@ -419,10 +419,10 @@ class KubricMovifDataset(CoTrackerDataset):
         for i, img_path in enumerate(img_paths):
             rgbs.append(imageio.v2.imread(os.path.join(rgb_path, img_path)))
 
-        rgbs = np.stack(rgbs)
+        rgbs = np.stack(rgbs) # (num_frames, H, W, 3)
         annot_dict = np.load(npy_path, allow_pickle=True).item()
-        traj_2d = annot_dict["coords"]
-        visibility = annot_dict["visibility"]
+        traj_2d = annot_dict["coords"] # (num_points, num_frames, 2)
+        visibility = annot_dict["visibility"] # (num_points, num_frames)
 
         frame_rate = 1
         final_num_traj = self.traj_per_sample

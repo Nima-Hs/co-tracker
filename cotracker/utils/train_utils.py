@@ -35,7 +35,17 @@ def get_eval_dataloader(dataset_root, ds_name):
     from cotracker.datasets.tap_vid_datasets import TapVidDataset
 
     collate_fn_local = collate_fn
-    if ds_name == "dynamic_replica":
+    if ds_name == 'synus':
+        from cotracker.datasets.synus_dataset import SynusDataset
+
+        eval_dataset = SynusDataset(
+            data_root=os.path.join(dataset_root, 'synus'),
+            traj_per_sample=1024,
+            use_augs=False,
+            split="valid",
+        )
+
+    elif ds_name == "dynamic_replica":
         from cotracker.datasets.dr_dataset import DynamicReplicaDataset
 
         eval_dataset = DynamicReplicaDataset(
@@ -96,12 +106,33 @@ def get_eval_dataloader(dataset_root, ds_name):
 
 def get_train_dataset(args):
     dataset = None
+    if 'synus' in args.train_datasets:
+        from cotracker.datasets import synus_dataset
+
+        synus = synus_dataset.SynusDataset(
+            data_root=os.path.join(
+                args.dataset_root, "synus"
+            ),
+            crop_size=args.crop_size,
+            seq_len=args.sequence_len,
+            traj_per_sample=args.traj_per_sample,
+            use_augs=not args.dont_use_augs,
+            random_seq_len=args.random_seq_len,
+            random_frame_rate=args.random_frame_rate,
+            random_number_traj=args.random_number_traj,
+        )
+
+        if dataset is None:
+            dataset = synus
+        else:
+            dataset = ConcatDataset([synus] + [dataset])
+
     if "kubric" in args.train_datasets:
         from cotracker.datasets import kubric_movif_dataset
 
         kubric = kubric_movif_dataset.KubricMovifDataset(
             data_root=os.path.join(
-                args.dataset_root, "kubric/kubric_movi_f_120_frames_dense/movi_f"
+                args.dataset_root, "kubric"
             ),
             crop_size=args.crop_size,
             seq_len=args.sequence_len,
